@@ -244,4 +244,23 @@ body {
   .social-links {
     justify-content: center;
   }
+}
+
+/* CSS cho user-greeting */
+.user-greeting {
+  margin-right: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+}
+
+/* CSS cho login-button */
+.login-button {
+  background-color: transparent;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  margin-right: 1rem;
+}
+
+.login-button:hover {
+  background-color: rgba(79, 70, 229, 0.05);
 } 

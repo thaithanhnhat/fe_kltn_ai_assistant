@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../assets/css/auth.css';
+import { useAuth } from '../contexts/AuthContext';
 
 const Register = () => {
   const navigate = useNavigate();
+  const { register } = useAuth();
+  
   const [formData, setFormData] = useState({
-    name: '',
+    fullname: '',
     email: '',
     password: '',
-    confirmPassword: '',
+    rePassword: '',
   });
   
   const [errors, setErrors] = useState({});
@@ -33,8 +36,8 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
     
-    if (!formData.name) {
-      newErrors.name = 'Họ tên là bắt buộc';
+    if (!formData.fullname) {
+      newErrors.fullname = 'Họ tên là bắt buộc';
     }
     
     if (!formData.email) {
@@ -49,10 +52,10 @@ const Register = () => {
       newErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
     
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = 'Xác nhận mật khẩu là bắt buộc';
-    } else if (formData.confirmPassword !== formData.password) {
-      newErrors.confirmPassword = 'Mật khẩu xác nhận không khớp';
+    if (!formData.rePassword) {
+      newErrors.rePassword = 'Xác nhận mật khẩu là bắt buộc';
+    } else if (formData.rePassword !== formData.password) {
+      newErrors.rePassword = 'Mật khẩu xác nhận không khớp';
     }
     
     setErrors(newErrors);
@@ -66,13 +69,33 @@ const Register = () => {
       setIsSubmitting(true);
       
       try {
-        // Giả lập đăng ký thành công
-        setTimeout(() => {
-          // Chuyển hướng đến trang xác minh email
-          navigate(`/verify-email?email=${encodeURIComponent(formData.email)}&mode=register`);
-        }, 1000);
+        // Gọi API đăng ký
+        await register(formData);
+        
+        // Chuyển đến trang xác minh email
+        navigate(`/verify-email?email=${encodeURIComponent(formData.email)}&mode=register`);
       } catch (error) {
-        setErrors({ general: 'Đăng ký thất bại. Vui lòng thử lại.' });
+        // Xử lý lỗi từ API
+        if (error.response) {
+          if (error.response.data.error) {
+            // Trường hợp lỗi chung
+            setErrors({ general: error.response.data.error });
+          } else if (typeof error.response.data === 'object') {
+            // Trường hợp lỗi validation
+            const apiErrors = {};
+            for (const key in error.response.data) {
+              const fieldName = key === 'password' ? 'password' :
+                               key === 'rePassword' ? 'rePassword' :
+                               key;
+              apiErrors[fieldName] = error.response.data[key];
+            }
+            setErrors(apiErrors);
+          } else {
+            setErrors({ general: 'Đăng ký thất bại. Vui lòng thử lại.' });
+          }
+        } else {
+          setErrors({ general: 'Có lỗi xảy ra. Vui lòng thử lại sau.' });
+        }
       } finally {
         setIsSubmitting(false);
       }
@@ -84,8 +107,8 @@ const Register = () => {
       <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
-            <div className="auth-logo-icon">A</div>
-            <span className="auth-logo-text">AI Assistant</span>
+            <div className="auth-logo-icon">AI</div>
+            <span className="auth-logo-text">Assistant</span>
           </div>
           <h1 className="auth-title">Đăng ký tài khoản</h1>
           <p className="auth-subtitle">Tạo tài khoản để sử dụng dịch vụ trợ lý ảo AI</p>
@@ -95,17 +118,17 @@ const Register = () => {
           {errors.general && <div className="error-message">{errors.general}</div>}
           
           <div className="form-group">
-            <label className="form-label" htmlFor="name">Họ tên</label>
+            <label className="form-label" htmlFor="fullname">Họ tên</label>
             <input
-              id="name"
+              id="fullname"
               type="text"
-              name="name"
+              name="fullname"
               className="form-input"
               placeholder="Nguyễn Văn A"
-              value={formData.name}
+              value={formData.fullname}
               onChange={handleChange}
             />
-            {errors.name && <div className="error-message">{errors.name}</div>}
+            {errors.fullname && <div className="error-message">{errors.fullname}</div>}
           </div>
           
           <div className="form-group">
@@ -137,17 +160,17 @@ const Register = () => {
           </div>
           
           <div className="form-group">
-            <label className="form-label" htmlFor="confirmPassword">Xác nhận mật khẩu</label>
+            <label className="form-label" htmlFor="rePassword">Xác nhận mật khẩu</label>
             <input
-              id="confirmPassword"
+              id="rePassword"
               type="password"
-              name="confirmPassword"
+              name="rePassword"
               className="form-input"
               placeholder="••••••••"
-              value={formData.confirmPassword}
+              value={formData.rePassword}
               onChange={handleChange}
             />
-            {errors.confirmPassword && <div className="error-message">{errors.confirmPassword}</div>}
+            {errors.rePassword && <div className="error-message">{errors.rePassword}</div>}
           </div>
           
           <button 

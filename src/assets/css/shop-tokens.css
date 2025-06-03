@@ -1,0 +1,950 @@
+:root {
+  --primary-color: #6366f1;
+  --primary-light: #818cf8;
+  --primary-dark: #4f46e5;
+  --secondary-color: #3f3f46;
+  --text-dark: #27272a;
+  --text-light: #71717a;
+  --white: #ffffff;
+  --background-light: #f4f4f5;
+  --background-dark: #18181b;
+  --border-color: #e4e4e7;
+  --facebook-color: #1877f2;
+  --telegram-color: #0088cc;
+  --success-color: #10b981;
+  --warning-color: #f59e0b;
+  --danger-color: #ef4444;
+  --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  --box-shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --box-shadow-dark: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --transition: all 0.2s ease;
+}
+
+.shop-tokens-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.tokens-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.tokens-header h1 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+}
+
+.shop-icon {
+  color: var(--primary-color);
+}
+
+.back-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background-color: var(--background-light);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  color: var(--text-dark);
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.back-button:hover {
+  background-color: var(--border-color);
+}
+
+.error-alert, .success-alert {
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.error-alert {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.success-alert {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.alert-icon {
+  flex-shrink: 0;
+}
+
+.close-alert {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+}
+
+.tokens-section {
+  background-color: var(--white);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--box-shadow);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-header h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.add-token-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.add-token-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+.token-form-container {
+  background-color: var(--background-light);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.token-form h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-dark);
+}
+
+.form-group select,
+.form-group input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.form-group select:focus,
+.form-group input:focus {
+  border-color: var(--primary-color);
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+.token-input-container {
+  position: relative;
+}
+
+.token-input-container input {
+  padding-right: 2.75rem;
+}
+
+.toggle-view-btn {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  display: flex;
+  padding: 0.4rem;
+}
+
+.token-info-box {
+  background-color: #e0f2fe;
+  color: #0369a1;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.info-icon {
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.cancel-btn {
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--border-color);
+  background-color: var(--white);
+  color: var(--text-dark);
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cancel-btn:hover {
+  background-color: var(--background-light);
+}
+
+.submit-btn {
+  padding: 0.65rem 1.25rem;
+  border: none;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.submit-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+.submit-btn:disabled {
+  background-color: var(--primary-light);
+  cursor: not-allowed;
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--primary-light);
+  border-radius: 50%;
+  border-top-color: var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+.empty-tokens {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  gap: 1rem;
+  text-align: center;
+}
+
+.add-first-token {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--primary-color);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 0.75rem 1.25rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.add-first-token:hover {
+  background-color: var(--primary-dark);
+}
+
+.tokens-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1rem;
+}
+
+.token-card {
+  border-radius: 10px;
+  padding: 1.25rem;
+  box-shadow: var(--box-shadow-light);
+  background-color: var(--white);
+  transition: var(--transition);
+  border: 1px solid var(--border-color);
+}
+
+.token-card:hover {
+  box-shadow: var(--box-shadow-medium);
+}
+
+.token-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.token-header h3 {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--text-dark);
+  margin: 0;
+}
+
+.platform-icon {
+  font-size: 24px;
+  margin-right: 10px;
+}
+
+.platform-icon.facebook {
+  color: #1877F2;
+}
+
+.platform-icon.telegram {
+  color: #0088cc;
+}
+
+.status-badge {
+  margin-left: auto;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.status-active {
+  background-color: #ecfdf5;
+  color: #047857;
+}
+
+.status-expired {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-revoked {
+  background-color: #fee2e2;
+  color: #b91c1c;
+}
+
+.status-unknown {
+  background-color: #f3f4f6;
+  color: #4b5563;
+}
+
+.token-content {
+  margin-bottom: 1rem;
+}
+
+.token-value {
+  margin-bottom: 0.75rem;
+}
+
+.token-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.35rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.token-display {
+  display: flex;
+  background-color: var(--background-light);
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.85rem;
+  position: relative;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.token-display code {
+  word-break: break-all;
+  flex: 1;
+}
+
+.copy-token-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0.35rem;
+  margin-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.copy-token-btn:hover {
+  color: var(--primary-color);
+}
+
+.token-info {
+  margin-bottom: 0.5rem;
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+}
+
+.token-info:last-child {
+  margin-bottom: 0;
+}
+
+.token-info code {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.85rem;
+  background-color: var(--background-light);
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+}
+
+.token-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.token-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border: none;
+  padding: 0.65rem;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+}
+
+.token-action-btn.revoke-btn {
+  background-color: #fef2f2;
+  color: var(--danger-color);
+}
+
+.token-action-btn.revoke-btn:hover {
+  background-color: var(--danger-color);
+  color: var(--white);
+}
+
+.token-action-btn.activate-btn {
+  background-color: #ecfdf5;
+  color: var(--success-color);
+}
+
+.token-action-btn.activate-btn:hover {
+  background-color: var(--success-color);
+  color: var(--white);
+}
+
+.token-action-btn.delete-btn {
+  background-color: #fef2f2;
+  color: var(--danger-color);
+}
+
+.token-action-btn.delete-btn:hover {
+  background-color: var(--danger-color);
+  color: var(--white);
+}
+
+@media (max-width: 768px) {
+  .shop-tokens-container {
+    padding: 1rem;
+  }
+  
+  .tokens-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .token-form-container {
+    padding: 1rem;
+  }
+  
+  .token-header {
+    flex-wrap: wrap;
+  }
+  
+  .status-badge {
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Facebook Bot Configuration Styles */
+.facebook-config-panel {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 1.5rem;
+}
+
+.facebook-status-card {
+  background-color: var(--background-light);
+  border-radius: 10px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.facebook-status-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+.status-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem;
+  background-color: var(--white);
+  border-radius: 8px;
+  box-shadow: var(--box-shadow);
+}
+
+.status-indicator {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-indicator.active {
+  background-color: var(--success-color);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+}
+
+.status-indicator.inactive {
+  background-color: var(--text-light);
+  box-shadow: 0 0 0 3px rgba(113, 113, 122, 0.2);
+}
+
+.facebook-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.facebook-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  border: none;
+}
+
+.facebook-action-btn.configure-btn {
+  background-color: var(--background-light);
+  color: var(--text-dark);
+  border: 1px solid var(--border-color);
+}
+
+.facebook-action-btn.configure-btn:hover {
+  background-color: var(--border-color);
+}
+
+.facebook-action-btn.start-btn {
+  background-color: var(--success-color);
+  color: var(--white);
+}
+
+.facebook-action-btn.start-btn:hover {
+  background-color: #0d9668;
+}
+
+.facebook-action-btn.stop-btn {
+  background-color: var(--danger-color);
+  color: var(--white);
+}
+
+.facebook-action-btn.stop-btn:hover {
+  background-color: #b91c1c;
+}
+
+.facebook-action-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.webhook-info-card {
+  background-color: var(--white);
+  border-radius: 10px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--box-shadow);
+}
+
+.webhook-info-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-top: 0;
+  margin-bottom: 1.25rem;
+}
+
+.webhook-info-item {
+  margin-bottom: 1rem;
+}
+
+.webhook-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.webhook-value {
+  display: flex;
+  background-color: var(--background-light);
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.85rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.webhook-value code {
+  word-break: break-all;
+  flex: 1;
+}
+
+.copy-btn {
+  background: none;
+  border: none;
+  color: var(--text-light);
+  cursor: pointer;
+  padding: 0.35rem;
+  margin-left: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  color: var(--primary-color);
+}
+
+.webhook-info-box {
+  background-color: #e0f2fe;
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin: 1.5rem 0;
+  color: #0369a1;
+}
+
+.setup-steps {
+  padding-left: 1.5rem;
+  margin: 0;
+}
+
+.setup-steps li {
+  margin-bottom: 0.75rem;
+}
+
+.setup-steps li:last-child {
+  margin-bottom: 0;
+}
+
+.setup-steps code {
+  background-color: rgba(3, 105, 161, 0.1);
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.token-input-form {
+  margin-top: 1.5rem;
+}
+
+.token-input-form h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-top: 0;
+  margin-bottom: 1rem;
+}
+
+.token-input-container.mt-3 {
+  margin-top: 0.75rem;
+}
+
+.pageid-info-box {
+  background-color: #f0f9ff;
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.85rem;
+  color: #0369a1;
+}
+
+.pageid-help-list {
+  padding-left: 1.25rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+}
+
+.pageid-help-list li {
+  margin-bottom: 0.35rem;
+}
+
+.pageid-help-list code {
+  background-color: rgba(3, 105, 161, 0.1);
+  padding: 0.15rem 0.35rem;
+  border-radius: 4px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 0.85rem;
+}
+
+.save-token-btn {
+  margin-top: 1rem;
+  padding: 0.75rem 1.25rem;
+  background-color: var(--facebook-color);
+  color: var(--white);
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.save-token-btn:hover {
+  background-color: #0d5dca;
+}
+
+.save-token-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Responsive styles for Facebook Bot Configuration */
+@media (max-width: 1024px) {
+  .facebook-config-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .shop-tokens-container {
+    padding: 1rem;
+  }
+  
+  .tokens-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .token-form-container {
+    padding: 1rem;
+  }
+  
+  .token-header {
+    flex-wrap: wrap;
+  }
+  
+  .status-badge {
+    margin-left: 0;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Thêm style cho hướng dẫn cấu hình Facebook Bot */
+.setup-guide-box {
+  background-color: #f0f9ff;
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.guide-header {
+  padding: 1rem 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  color: #0369a1;
+  border-bottom: 1px solid #bae6fd;
+}
+
+.guide-content {
+  padding: 1.25rem 1.5rem;
+}
+
+.setup-steps-container {
+  display: flex;
+  justify-content: space-between;
+  margin: 1.5rem 0;
+  position: relative;
+}
+
+.setup-steps-container::before {
+  content: '';
+  position: absolute;
+  top: 1.15rem;
+  left: 1.5rem;
+  right: 1.5rem;
+  height: 2px;
+  background-color: #e0e7ff;
+  z-index: 0;
+}
+
+.setup-step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.step-number {
+  width: 2.3rem;
+  height: 2.3rem;
+  border-radius: 50%;
+  background-color: white;
+  border: 2px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: #64748b;
+  margin-bottom: 0.75rem;
+  transition: all 0.3s ease;
+}
+
+.step-text {
+  font-size: 0.85rem;
+  color: #64748b;
+  text-align: center;
+  max-width: 100px;
+  transition: all 0.3s ease;
+}
+
+.setup-step-indicator.completed .step-number {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+  color: white;
+}
+
+.setup-step-indicator.completed .step-text {
+  color: #4338ca;
+  font-weight: 500;
+}
+
+.guide-note {
+  margin-top: 1.25rem;
+  padding: 0.75rem 1rem;
+  background-color: #fff1f2;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: #be123c;
+  font-size: 0.9rem;
+}
+
+/* Facebook action buttons */
+.facebook-action-btn.check-btn {
+  background-color: #e4e4e7;
+  color: var(--text-dark);
+  border: 1px solid #d4d4d8;
+}
+
+.facebook-action-btn.check-btn:hover {
+  background-color: #d4d4d8;
+}
+
+.facebook-status-card {
+  background-color: var(--background-light);
+  border-radius: 10px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+} 

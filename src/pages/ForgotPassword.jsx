@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../assets/css/auth.css';
+import { useAuth } from '../contexts/AuthContext';
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
+  const { forgotPassword } = useAuth();
+  
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,17 +35,21 @@ const ForgotPassword = () => {
       setIsSubmitting(true);
       
       try {
-        // Mô phỏng gửi yêu cầu đặt lại mật khẩu
+        // Gọi API quên mật khẩu
+        await forgotPassword(email);
+        
+        setIsSubmitted(true);
+        
+        // Sau 2 giây, chuyển hướng tới trang hướng dẫn kiểm tra email
         setTimeout(() => {
-          setIsSubmitted(true);
-          
-          // Sau 2 giây, chuyển hướng tới trang xác minh
-          setTimeout(() => {
-            navigate(`/verify-email?email=${encodeURIComponent(email)}&mode=reset`);
-          }, 2000);
-        }, 1500);
+          navigate(`/verify-email?email=${encodeURIComponent(email)}&mode=reset`);
+        }, 2000);
       } catch (error) {
-        setError('Không thể gửi yêu cầu. Vui lòng thử lại sau.');
+        if (error.response && error.response.data) {
+          setError(error.response.data.error || 'Không thể gửi yêu cầu. Vui lòng thử lại sau.');
+        } else {
+          setError('Có lỗi xảy ra. Vui lòng thử lại sau.');
+        }
       } finally {
         setIsSubmitting(false);
       }
@@ -55,8 +62,8 @@ const ForgotPassword = () => {
         <div className="auth-card">
           <div className="auth-header">
             <div className="auth-logo">
-              <div className="auth-logo-icon">A</div>
-              <span className="auth-logo-text">AI Assistant</span>
+              <div className="auth-logo-icon">AI</div>
+              <span className="auth-logo-text">Assistant</span>
             </div>
             <h1 className="auth-title">Kiểm tra Email của bạn</h1>
             <p className="auth-subtitle">
@@ -86,12 +93,12 @@ const ForgotPassword = () => {
       <div className="auth-card">
         <div className="auth-header">
           <div className="auth-logo">
-            <div className="auth-logo-icon">A</div>
-            <span className="auth-logo-text">AI Assistant</span>
+            <div className="auth-logo-icon">AI</div>
+            <span className="auth-logo-text">Assistant</span>
           </div>
           <h1 className="auth-title">Quên mật khẩu?</h1>
           <p className="auth-subtitle">
-            Vui lòng nhập địa chỉ email của bạn. Chúng tôi sẽ gửi mã xác minh
+            Vui lòng nhập địa chỉ email của bạn. Chúng tôi sẽ gửi liên kết
             để đặt lại mật khẩu của bạn.
           </p>
         </div>
@@ -116,7 +123,7 @@ const ForgotPassword = () => {
             className="auth-btn" 
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Đang xử lý...' : 'Gửi mã xác minh'}
+            {isSubmitting ? 'Đang xử lý...' : 'Gửi liên kết đặt lại'}
           </button>
         </form>
         

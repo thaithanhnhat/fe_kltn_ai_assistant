@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import '../assets/css/auth.css';
+import { useAuth } from '../contexts/AuthContext';
 
 const ResetPassword = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { resetPassword } = useAuth();
+  
   const queryParams = new URLSearchParams(location.search);
   const email = queryParams.get('email') || '';
+  const token = queryParams.get('token') || '';
   
   const [formData, setFormData] = useState({
     password: '',
@@ -16,6 +20,13 @@ const ResetPassword = () => {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  
+  // Kiểm tra token khi component mount
+  useEffect(() => {
+    if (!token) {
+      navigate('/verification-failed?error=Không có token đặt lại mật khẩu. Vui lòng thử lại.');
+    }
+  }, [token, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -59,17 +70,20 @@ const ResetPassword = () => {
       setIsSubmitting(true);
       
       try {
-        // Mô phỏng đặt lại mật khẩu thành công
+        // Gọi API đặt lại mật khẩu
+        await resetPassword(token, formData.password, formData.confirmPassword);
+        setIsSuccess(true);
+        
+        // Sau 2 giây, chuyển hướng đến trang đăng nhập
         setTimeout(() => {
-          setIsSuccess(true);
-          
-          // Sau 2 giây, chuyển hướng đến trang đăng nhập
-          setTimeout(() => {
-            navigate('/login');
-          }, 2000);
-        }, 1500);
+          navigate('/login');
+        }, 2000);
       } catch (error) {
-        setErrors({ general: 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.' });
+        if (error.response && error.response.data) {
+          setErrors({ general: error.response.data.error || 'Đặt lại mật khẩu thất bại. Vui lòng thử lại.' });
+        } else {
+          setErrors({ general: 'Có lỗi xảy ra. Vui lòng thử lại sau.' });
+        }
       } finally {
         setIsSubmitting(false);
       }
@@ -82,8 +96,8 @@ const ResetPassword = () => {
         <div className="auth-card">
           <div className="auth-header">
             <div className="auth-logo">
-              <div className="auth-logo-icon">A</div>
-              <span className="auth-logo-text">AI Assistant</span>
+              <div className="auth-logo-icon">AI</div>
+              <span className="auth-logo-text">Assistant</span>
             </div>
             <h1 className="auth-title">Mật khẩu đã đặt lại!</h1>
             <p className="auth-subtitle">
