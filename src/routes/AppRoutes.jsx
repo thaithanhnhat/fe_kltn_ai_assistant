@@ -6,6 +6,8 @@ import Register from '../pages/Register';
 import Dashboard from '../pages/Dashboard';
 import ShopConfig from '../pages/ShopConfig';
 import TokensManagement from '../pages/TokensManagement';
+import ShopProducts from '../pages/ShopProducts';
+import ShopManagement from '../pages/ShopManagement';
 import PrivateRoute from './PrivateRoute';
 import PaymentResult from '../pages/PaymentResult';
 
@@ -32,6 +34,18 @@ const AppRoutes = () => {
       <Route path="/shop/:shopId/tokens" element={
         <PrivateRoute>
           <TokensManagement />
+        </PrivateRoute>
+      } />
+      
+      <Route path="/shop/:shopId/products" element={
+        <PrivateRoute>
+          <ShopProducts />
+        </PrivateRoute>
+      } />
+      
+      <Route path="/shop/:shopId/management" element={
+        <PrivateRoute>
+          <ShopManagement />
         </PrivateRoute>
       } />
       

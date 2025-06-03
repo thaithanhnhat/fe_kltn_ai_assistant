@@ -11,13 +11,14 @@ import {
   FiShield, FiInfo, FiActivity, FiCalendar, FiStar,
   FiCreditCard, FiBarChart2, FiX, FiAtSign, FiHash, 
   FiMail, FiPhone, FiMapPin, FiGlobe, FiBriefcase,
-  FiShoppingBag, FiPlus, FiTrash2, FiEdit3, FiToggleLeft, FiToggleRight, FiPackage
+  FiShoppingBag, FiPlus, FiTrash2, FiEdit3, FiToggleLeft, FiToggleRight, FiPackage, FiLayout
 } from 'react-icons/fi';
 import { QRCodeSVG } from 'qrcode.react';
 import '../assets/css/dashboard.css';
 import profileService from '../services/profileService';
 import paymentService from '../services/paymentService';
 import shopService from '../services/shopService';
+import balanceService from '../services/balanceService';
 import Footer from '../layouts/Footer';
 
 const Dashboard = () => {
@@ -37,10 +38,10 @@ const Dashboard = () => {
 
   // State cho phần nạp tiền
   const [paymentAmount, setPaymentAmount] = useState(0.01);
-  const [paymentCurrency, setPaymentCurrency] = useState('BNB');
+
   const [paymentInfo, setPaymentInfo] = useState(null);
   const [isCreatingPayment, setIsCreatingPayment] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState(null);
+
   const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [paymentList, setPaymentList] = useState([]);
   const [isLoadingPayments, setIsLoadingPayments] = useState(false);
@@ -162,7 +163,7 @@ const Dashboard = () => {
   };
 
   // Hàm tải danh sách thanh toán
-  const fetchPayments = async () => {
+  const fetchPayments = useCallback(async () => {
     try {
       setIsLoadingPayments(true);
       const payments = await paymentService.getUserPayments();
@@ -178,14 +179,14 @@ const Dashboard = () => {
     } finally {
       setIsLoadingPayments(false);
     }
-  };
+  }, [logout, navigate]);
 
   // Hàm tạo giao dịch
   const createPayment = async (e) => {
     e.preventDefault();
     try {
       setIsCreatingPayment(true);
-      const payment = await paymentService.createPayment(paymentAmount, paymentCurrency);
+      const payment = await paymentService.createPayment(paymentAmount, 'BNB');
       setPaymentInfo(payment);
       // Tự động cập nhật danh sách thanh toán
       fetchPayments();
@@ -208,7 +209,7 @@ const Dashboard = () => {
     try {
       setIsCheckingPayment(true);
       const payment = await paymentService.checkPaymentStatus(paymentId);
-      setPaymentStatus(payment);
+
       // Cập nhật số dư nếu thanh toán thành công
       if (payment.status === 'COMPLETED' || payment.status === 'PAID' || payment.status === 'SWEPT') {
         refreshBalance();
@@ -291,7 +292,7 @@ const Dashboard = () => {
     if (activeSection === 'deposit') {
       fetchPayments();
     }
-  }, [activeSection]);
+  }, [activeSection, fetchPayments]);
 
   // Hàm tạo giao dịch VNPAY
   const createVnpayPayment = async (e) => {
@@ -1229,6 +1230,28 @@ const Dashboard = () => {
           <div className="shop-form-container">
             <form onSubmit={editingShopId ? updateShop : createShop} className="shop-form">
               <h3>{editingShopId ? 'Cập nhật cửa hàng' : 'Tạo cửa hàng mới'}</h3>
+              
+              {!editingShopId && (
+                <div className="payment-info-section">
+                  <div className="payment-notice">
+                    <FiDollarSign className="payment-icon" />
+                    <div className="payment-details">
+                      <h4>Chi phí tạo cửa hàng</h4>
+                      <p className="payment-amount">520,000 VNĐ</p>
+                      <p className="payment-description">
+                        Số tiền sẽ được trừ từ số dư tài khoản của bạn.
+                        {balance !== null && (
+                          <span className={balance >= 520000 ? 'balance-sufficient' : 'balance-insufficient'}>
+                            <br />Số dư hiện tại: {balance.toLocaleString()} VNĐ
+                            {balance < 520000 && ' (Không đủ số dư)'}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="form-group">
                 <label htmlFor="shopName">Tên cửa hàng</label>
                 <input
@@ -1255,7 +1278,7 @@ const Dashboard = () => {
                 <button 
                   type="submit" 
                   className="submit-btn"
-                  disabled={isCreatingShop}
+                  disabled={isCreatingShop || (!editingShopId && balance !== null && balance < 520000)}
                 >
                   {isCreatingShop ? (
                     <span className="loading-spinner small"></span>
@@ -1299,7 +1322,7 @@ const Dashboard = () => {
                   <div className="shop-header">
                     <div className="shop-name">
                       <a 
-                        href={`/shop/${shop.id}/tokens`} 
+                        href={`/shop/${shop.id}/config`}
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="shop-link"
@@ -1318,57 +1341,39 @@ const Dashboard = () => {
                     <span className="id-value">{shop.id}</span>
                   </div>
                 </div>
-                <div className="shop-actions">
-                  <div className="shop-actions-row">
-                    <button 
-                      className="shop-action-btn configure-btn"
-                      onClick={() => window.open(`/shop/${shop.id}/config`, '_blank')}
-                    >
-                      <FiSettings className="btn-icon" />
-                      <span>Cấu hình</span>
-                    </button>
-                    <button 
-                      className="shop-action-btn token-btn"
-                      onClick={() => window.open(`/shop/${shop.id}/tokens`, '_blank')}
-                    >
-                      <FiKey className="btn-icon" />
-                      <span>Quản lý Token</span>
-                    </button>
-                  </div>
-                  <div className="shop-actions-row">
-                    <button 
-                      className="shop-action-btn products-btn"
-                      onClick={() => navigate(`/shop/${shop.id}/products`)}
-                    >
-                      <FiPackage className="btn-icon" />
-                      <span>Quản lý sản phẩm</span>
-                    </button>
-                  </div>
-                  <div className="shop-actions-row">
-                    <button 
-                      className="shop-action-btn status-btn"
-                      onClick={() => updateShopStatus(shop.id, shop.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
-                    >
-                      {shop.status === 'ACTIVE' ? (
-                        <>
-                          <FiToggleRight className="btn-icon" />
-                          <span>Vô hiệu hóa</span>
-                        </>
-                      ) : (
-                        <>
-                          <FiToggleLeft className="btn-icon" />
-                          <span>Kích hoạt</span>
-                        </>
-                      )}
-                    </button>
-                    <button 
-                      className="shop-action-btn delete-btn"
-                      onClick={() => deleteShop(shop.id)}
-                    >
-                      <FiTrash2 className="btn-icon" />
-                      <span>Xóa</span>
-                    </button>
-                  </div>
+                
+                <button 
+                  className="shop-management-btn"
+                  onClick={() => navigate(`/shop/${shop.id}/management`)}
+                >
+                  <FiLayout className="btn-icon" />
+                  <span>Quản lý cửa hàng</span>
+                </button>
+                
+                <div className="shop-secondary-actions">
+                  <button 
+                    className="shop-action-btn icon-only configure-btn"
+                    onClick={() => window.open(`/shop/${shop.id}/config`, '_blank')}
+                    title="Cấu hình"
+                  >
+                    <FiSettings />
+                  </button>
+                  
+                  <button 
+                    className="shop-action-btn icon-only status-btn"
+                    onClick={() => updateShopStatus(shop.id, shop.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE')}
+                    title={shop.status === 'ACTIVE' ? 'Vô hiệu hóa' : 'Kích hoạt'}
+                  >
+                    {shop.status === 'ACTIVE' ? <FiToggleRight /> : <FiToggleLeft />}
+                  </button>
+                  
+                  <button 
+                    className="shop-action-btn icon-only delete-btn"
+                    onClick={() => deleteShop(shop.id)}
+                    title="Xóa"
+                  >
+                    <FiTrash2 />
+                  </button>
                 </div>
               </div>
             ))}
@@ -1429,24 +1434,62 @@ const Dashboard = () => {
     try {
       setIsCreatingShop(true);
       setShopError(null);
-      await shopService.createShop(shopFormData.name);
-      // Reset form và tải lại danh sách shop
-      setShopFormData({ name: '' });
-      setShopFormVisible(false);
-      fetchShops();
+      
+      // Bước 1: Trừ tiền trước khi tạo shop (520,000 VND)
+      try {
+        const paymentResult = await balanceService.deductFixedAmount();
+        
+        if (!paymentResult || paymentResult !== true) {
+          setShopError('Số dư không đủ để tạo cửa hàng. Vui lòng nạp thêm tiền vào tài khoản. Chi phí tạo cửa hàng: 520,000 VNĐ');
+          return;
+        }
+      } catch (paymentError) {
+        console.error('Error deducting payment:', paymentError);
+        if (paymentError.response?.status === 400) {
+          setShopError('Số dư không đủ để tạo cửa hàng. Vui lòng nạp thêm tiền vào tài khoản. Chi phí tạo cửa hàng: 520,000 VNĐ');
+        } else {
+          setShopError('Lỗi thanh toán. Vui lòng thử lại sau.');
+        }
+        return;
+      }
+      
+      // Bước 2: Tạo shop sau khi thanh toán thành công
+      try {
+        await shopService.createShop(shopFormData.name);
+        
+        // Reset form và tải lại danh sách shop
+        setShopFormData({ name: '' });
+        setShopFormVisible(false);
+        fetchShops();
+        
+        // Cập nhật số dư sau khi tạo shop thành công
+        refreshBalance();
+        
+      } catch (shopError) {
+        console.error('Error creating shop after payment:', shopError);
+        setShopError('Đã thanh toán nhưng không thể tạo cửa hàng. Vui lòng liên hệ hỗ trợ để được hoàn tiền.');
+        
+        // Nếu gặp lỗi về token, chuyển hướng đến trang login
+        if (shopError.message && (shopError.message.includes('token') || shopError.response?.status === 401)) {
+          logout();
+          navigate('/login');
+          return;
+        }
+      }
+      
     } catch (err) {
-      console.error('Error creating shop:', err);
+      console.error('Error in createShop:', err);
       setShopError('Không thể tạo cửa hàng. Vui lòng thử lại sau.');
       // Nếu gặp lỗi về token, chuyển hướng đến trang login
       if (err.message && (err.message.includes('token') || err.response?.status === 401)) {
-        logout(); // Đăng xuất người dùng
+        logout();
         navigate('/login');
         return;
       }
     } finally {
       setIsCreatingShop(false);
     }
-  }, [shopFormData.name, fetchShops, logout, navigate]);
+  }, [shopFormData.name, fetchShops, refreshBalance, logout, navigate]);
   
   // Cập nhật shop với useCallback
   const updateShop = useCallback(async (e) => {
@@ -1521,12 +1564,7 @@ const Dashboard = () => {
     }
   }, [fetchShops, logout, navigate]);
   
-  // Bắt đầu chỉnh sửa shop với useCallback
-  const startEditShop = useCallback((shop) => {
-    setShopFormData({ name: shop.name });
-    setEditingShopId(shop.id);
-    setShopFormVisible(true);
-  }, []);
+
 
   return (
     <div className="dashboard-container">

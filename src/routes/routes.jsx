@@ -13,6 +13,7 @@ import ShopConfig from '../pages/ShopConfig';
 import PaymentResult from '../pages/PaymentResult';
 import ShopProducts from '../pages/ShopProducts';
 import ProductDetail from '../pages/ProductDetail';
+import ShopManagement from '../pages/ShopManagement';
 
 const router = createBrowserRouter([
   {
@@ -70,6 +71,10 @@ const router = createBrowserRouter([
   {
     path: '/shop/:shopId/products/:productId',
     element: <ProductDetail />,
+  },
+  {
+    path: '/shop/:shopId/management',
+    element: <ShopManagement />,
   }
 ]);
 

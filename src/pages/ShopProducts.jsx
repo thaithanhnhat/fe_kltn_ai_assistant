@@ -4,17 +4,23 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   FiArrowLeft, FiShoppingBag, FiPlus, FiEdit, FiTrash2, FiRefreshCw,
   FiSearch, FiFilter, FiX, FiAlertCircle, FiCheckCircle, FiPackage,
-  FiDollarSign, FiTag, FiLayers, FiImage, FiInfo, FiEye
+  FiDollarSign, FiTag, FiLayers, FiImage, FiInfo, FiEye, FiZap,
+  FiMaximize, FiMinimize
 } from 'react-icons/fi';
 import productService from '../services/productService';
 import shopService from '../services/shopService';
+import imageGenerationService from '../services/imageGenerationService';
 import Footer from '../layouts/Footer';
 import '../assets/css/shop-products.css';
+import ProductImageGenerator from '../components/ProductImageGenerator';
 
 const ShopProducts = () => {
   const { shopId } = useParams();
   const navigate = useNavigate();
   const { isAuthenticated, logout } = useAuth();
+  
+  // API URL
+  const API_URL = 'http://localhost:8080/assistant';
   
   // States
   const [shop, setShop] = useState(null);
@@ -31,6 +37,11 @@ const ShopProducts = () => {
   const [formErrors, setFormErrors] = useState({});
   const [productImage, setProductImage] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // AI Image generation states
+  const [prompt, setPrompt] = useState('');
+  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [originalImageBase64, setOriginalImageBase64] = useState(null); // Lưu hình ảnh gốc để hoàn tác
   
   // Pagination & filtering
   const [page, setPage] = useState(0);
@@ -55,6 +66,9 @@ const ShopProducts = () => {
   // Custom fields form data
   const [customFieldKey, setCustomFieldKey] = useState('');
   const [customFieldValue, setCustomFieldValue] = useState('');
+  
+  // Fullscreen image view state
+  const [fullscreenImage, setFullscreenImage] = useState(null);
   
   // Fetch shop details
   const fetchShopDetails = useCallback(async () => {
@@ -186,6 +200,7 @@ const ShopProducts = () => {
     setProductImage(null);
     setEditingProductId(null);
     setFormErrors({});
+    setPrompt('');
     setShowProductForm(true);
   };
   
@@ -207,6 +222,7 @@ const ShopProducts = () => {
       
       setEditingProductId(productId);
       setFormErrors({});
+      setPrompt('');
       setShowProductForm(true);
     } catch (err) {
       console.error('Error fetching product details:', err);
@@ -396,6 +412,105 @@ const ShopProducts = () => {
     return amount.toLocaleString('vi-VN') + ' ₫';
   };
   
+  // Generate AI image
+  const handleGenerateAIImage = async () => {
+    if (!prompt.trim()) {
+      setFormErrors(prev => ({
+        ...prev,
+        aiPrompt: 'Vui lòng nhập mô tả cho hình ảnh'
+      }));
+      return;
+    }
+    
+    if (!editingProductId) {
+      setFormErrors(prev => ({
+        ...prev,
+        aiPrompt: 'Cần lưu sản phẩm trước khi tạo hình ảnh AI'
+      }));
+      return;
+    }
+    
+    // Lưu hình ảnh gốc trước khi thay đổi
+    setOriginalImageBase64(productForm.imageBase64);
+    
+    setFormErrors(prev => ({ ...prev, aiPrompt: null }));
+    setIsGeneratingImage(true);
+    
+    try {
+      const result = await imageGenerationService.generateProductImage(editingProductId, prompt);
+      
+      if (result.status === 'SUCCESS') {
+        // Tải lại thông tin sản phẩm để lấy ảnh mới nhất
+        const updatedProduct = await productService.getShopProductById(shopId, editingProductId);
+        
+        // Cập nhật form với dữ liệu mới
+        setProductForm(prev => ({
+          ...prev,
+          imageBase64: updatedProduct.imageBase64
+        }));
+        
+        setSuccess(`Hình ảnh đã được tạo thành công! ${result.message}`);
+      } else {
+        // Trường hợp API trả về status ERROR
+        setError(result.message || 'Không thể tạo hình ảnh');
+      }
+    } catch (err) {
+      console.error('Lỗi khi tạo hình ảnh:', err);
+      setError(err.message || 'Không thể tạo hình ảnh. Vui lòng thử lại sau.');
+    } finally {
+      setIsGeneratingImage(false);
+    }
+  };
+  
+  // Hoàn tác hình ảnh về ảnh gốc
+  const handleUndoImage = async () => {
+    if (!originalImageBase64 || !editingProductId) {
+      return;
+    }
+    
+    try {
+      setIsSubmitting(true);
+      
+      // Cập nhật form với ảnh gốc
+      setProductForm(prev => ({
+        ...prev,
+        imageBase64: originalImageBase64
+      }));
+      
+      // Cập nhật ảnh trên server
+      await productService.updateProduct(shopId, editingProductId, {
+        ...productForm,
+        imageBase64: originalImageBase64,
+        price: Number(productForm.price),
+        stock: Number(productForm.stock)
+      });
+      
+      setSuccess('Đã hoàn tác về hình ảnh gốc');
+      setOriginalImageBase64(null); // Reset ảnh gốc sau khi hoàn tác
+    } catch (err) {
+      console.error('Lỗi khi hoàn tác hình ảnh:', err);
+      setError('Không thể hoàn tác hình ảnh. Vui lòng thử lại sau.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+  
+  // Reset khi đóng form
+  const handleCloseForm = () => {
+    setShowProductForm(false);
+    setOriginalImageBase64(null);
+  };
+  
+  // Open image in fullscreen
+  const openFullscreenImage = (imageBase64) => {
+    setFullscreenImage(imageBase64);
+  };
+  
+  // Close fullscreen image
+  const closeFullscreenImage = () => {
+    setFullscreenImage(null);
+  };
+  
   return (
     <div className="shop-products-container">
       <div className="products-header">
@@ -532,11 +647,20 @@ const ShopProducts = () => {
                   <tr key={product.id}>
                     <td className="image-col">
                       {product.imageBase64 ? (
-                        <img 
-                          src={`data:image/jpeg;base64,${product.imageBase64}`} 
-                          alt={product.name}
-                          className="product-thumbnail"
-                        />
+                        <div className="product-thumbnail-container">
+                          <img 
+                            src={`data:image/jpeg;base64,${product.imageBase64}`} 
+                            alt={product.name}
+                            className="product-thumbnail"
+                          />
+                          <button 
+                            className="fullscreen-btn"
+                            onClick={() => openFullscreenImage(product.imageBase64)}
+                            title="Xem toàn màn hình"
+                          >
+                            <FiMaximize />
+                          </button>
+                        </div>
                       ) : (
                         <div className="no-image">
                           <FiImage />
@@ -569,30 +693,16 @@ const ShopProducts = () => {
                         >+</button>
                       </div>
                     </td>
-                    <td className="actions-col">
-                      <div className="product-actions">
-                        <button 
-                          className="action-btn view-btn"
-                          onClick={() => navigate(`/shop/${shopId}/products/${product.id}`)}
-                          title="Xem chi tiết"
-                        >
-                          <FiEye />
-                        </button>
-                        <button 
-                          className="action-btn edit-btn" 
-                          onClick={() => openEditForm(product.id)}
-                          title="Chỉnh sửa"
-                        >
-                          <FiEdit />
-                        </button>
-                        <button 
-                          className="action-btn delete-btn" 
-                          onClick={() => handleDeleteProduct(product.id)}
-                          title="Xóa"
-                        >
-                          <FiTrash2 />
-                        </button>
-                      </div>
+                    <td className="actions-cell">
+                      <button className="action-btn view-btn" onClick={() => navigate(`/shop/${shopId}/products/${product.id}`)}>
+                        <FiEye />
+                      </button>
+                      <button className="action-btn edit-btn" onClick={() => openEditForm(product.id)}>
+                        <FiEdit />
+                      </button>
+                      <button className="action-btn delete-btn" onClick={() => handleDeleteProduct(product.id)}>
+                        <FiTrash2 />
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -642,7 +752,7 @@ const ShopProducts = () => {
               </h2>
               <button 
                 className="close-modal-btn"
-                onClick={() => setShowProductForm(false)}
+                onClick={handleCloseForm}
               >
                 <FiX />
               </button>
@@ -764,6 +874,14 @@ const ShopProducts = () => {
                           >
                             <FiX />
                           </button>
+                          <button 
+                            type="button" 
+                            className="fullscreen-preview-btn"
+                            onClick={() => openFullscreenImage(productForm.imageBase64)}
+                            title="Xem toàn màn hình"
+                          >
+                            <FiMaximize />
+                          </button>
                         </div>
                       ) : (
                         <div className="image-upload">
@@ -782,6 +900,70 @@ const ShopProducts = () => {
                       )}
                       {formErrors.image && <div className="invalid-feedback">{formErrors.image}</div>}
                     </div>
+                    
+                    {/* AI Image Generation */}
+                    {editingProductId && productForm.imageBase64 && (
+                      <div className="ai-image-generation">
+                        <label htmlFor="aiPrompt">
+                          <FiZap className="form-icon" /> Tạo hình ảnh với AI
+                        </label>
+                        <div className="ai-prompt-info">
+                          <p className="ai-prompt-desc">Nhập mô tả thay đổi bạn muốn áp dụng cho hình ảnh sản phẩm. Có thể sử dụng tiếng Việt.</p>
+                          <p className="ai-prompt-examples">Ví dụ các prompt hiệu quả:</p>
+                          <ul className="ai-prompt-examples-list">
+                            <li>"Thay đổi phông nền thành màu trắng"</li>
+                            <li>"Làm nổi bật sản phẩm, thêm ánh sáng"</li>
+                            <li>"Thay đổi sản phẩm thành phiên bản mùa đông"</li>
+                            <li>"Điều chỉnh ánh sáng để sản phẩm nổi bật hơn"</li>
+                          </ul>
+                        </div>
+                        <div className="ai-prompt-container">
+                          <textarea
+                            id="aiPrompt"
+                            value={prompt}
+                            onChange={(e) => setPrompt(e.target.value)}
+                            placeholder="Nhập mô tả thay đổi bạn muốn (ví dụ: Thay đổi nền thành màu trắng, làm nổi bật sản phẩm...)"
+                            className={`form-control ${formErrors.aiPrompt ? 'is-invalid' : ''}`}
+                            rows={3}
+                            disabled={isGeneratingImage}
+                            maxLength={1000} // Giới hạn prompt tối đa 1000 ký tự
+                          />
+                          {formErrors.aiPrompt && <div className="invalid-feedback">{formErrors.aiPrompt}</div>}
+                          <div className="ai-prompt-controls">
+                            <small className="char-count">{prompt.length}/1000 ký tự</small>
+                            <div className="ai-buttons">
+                              {originalImageBase64 && (
+                                <button
+                                  type="button"
+                                  className="ai-undo-btn"
+                                  onClick={handleUndoImage}
+                                  disabled={isGeneratingImage || isSubmitting}
+                                >
+                                  <FiRefreshCw /> Hoàn tác
+                                </button>
+                              )}
+                              <button
+                                type="button"
+                                className="ai-generate-btn"
+                                onClick={handleGenerateAIImage}
+                                disabled={isGeneratingImage || !prompt.trim() || isSubmitting}
+                              >
+                                {isGeneratingImage ? (
+                                  <>
+                                    <FiRefreshCw className="spinning" /> Đang tạo...
+                                  </>
+                                ) : (
+                                  <>
+                                    <FiZap /> Tạo hình ảnh
+                                  </>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                          {isGeneratingImage && <p className="ai-generating-note">Quá trình tạo ảnh có thể mất từ 5-20 giây tùy thuộc vào độ phức tạp của yêu cầu.</p>}
+                        </div>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="form-group">
@@ -839,7 +1021,7 @@ const ShopProducts = () => {
                 <button 
                   type="button" 
                   className="cancel-btn"
-                  onClick={() => setShowProductForm(false)}
+                  onClick={handleCloseForm}
                 >
                   Hủy
                 </button>
@@ -860,6 +1042,26 @@ const ShopProducts = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Fullscreen Image Modal */}
+      {fullscreenImage && (
+        <div className="fullscreen-image-modal" onClick={closeFullscreenImage}>
+          <div className="fullscreen-image-container">
+            <img 
+              src={`data:image/jpeg;base64,${fullscreenImage}`} 
+              alt="Xem đầy đủ" 
+              onClick={e => e.stopPropagation()}
+            />
+            <button 
+              className="close-fullscreen-btn"
+              onClick={closeFullscreenImage}
+              title="Đóng"
+            >
+              <FiMinimize />
+            </button>
           </div>
         </div>
       )}
