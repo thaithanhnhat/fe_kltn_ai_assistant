@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { 
@@ -11,7 +11,6 @@ import {
 import shopService from '../services/shopService';
 import customerService from '../services/customerService';
 import orderService from '../services/orderService';
-import feedbackService from '../services/feedbackService';
 import Footer from '../layouts/Footer';
 import '../assets/css/shop-management.css';
 
@@ -45,12 +44,19 @@ const ShopManagement = () => {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderFilterStatus, setOrderFilterStatus] = useState('');
   const [activeDropdown, setActiveDropdown] = useState(null);
-  
-  // Search states
+    // Search states
   const [customerSearchTerm, setCustomerSearchTerm] = useState('');
   const [orderSearchTerm, setOrderSearchTerm] = useState('');
+    // Reports states
+  const [reportData, setReportData] = useState(null);
+  const [isLoadingReports, setIsLoadingReports] = useState(false);
+  const [reportPeriod, setReportPeriod] = useState('month'); // 'week', 'month', 'year'
   
-  // Fetch shop details
+  // Refs to track data fetch status
+  const dataFetchedRef = useRef({
+    customers: false,
+    orders: false
+  });// Fetch shop details
   const fetchShopDetails = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -68,13 +74,13 @@ const ShopManagement = () => {
       setIsLoading(false);
     }
   }, [shopId, logout, navigate]);
-  
-  // Fetch customers
+    // Fetch customers
   const fetchCustomers = useCallback(async () => {
     try {
       setIsLoadingCustomers(true);
       const customersData = await customerService.getCustomersByShopId(shopId);
       setCustomers(customersData);
+      dataFetchedRef.current.customers = true;
     } catch (err) {
       console.error('Error fetching customers:', err);
       setError('Không thể tải danh sách khách hàng. Vui lòng thử lại sau.');
@@ -82,8 +88,7 @@ const ShopManagement = () => {
       setIsLoadingCustomers(false);
     }
   }, [shopId]);
-  
-  // Fetch orders
+    // Fetch orders
   const fetchOrders = useCallback(async () => {
     try {
       setIsLoadingOrders(true);
@@ -97,15 +102,125 @@ const ShopManagement = () => {
       const validOrders = safeOrdersData.filter(order => order && order.id);
       
       setOrders(validOrders);
+      dataFetchedRef.current.orders = true;
     } catch (err) {
       console.error('Error fetching orders:', err);
       setError('Không thể tải danh sách đơn hàng. Vui lòng thử lại sau.');
       // Set orders to an empty array in case of error
-      setOrders([]);
-    } finally {
+      setOrders([]);    } finally {
       setIsLoadingOrders(false);
     }
   }, [shopId]);
+  
+  // Calculate report statistics
+  const calculateReportData = useCallback(() => {
+    try {
+      setIsLoadingReports(true);
+      
+      const now = new Date();
+      let startDate, endDate;
+      
+      // Determine date range based on period
+      switch (reportPeriod) {
+        case 'week':
+          startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+          endDate = now;
+          break;
+        case 'month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+          break;
+        case 'year':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          endDate = new Date(now.getFullYear(), 11, 31);
+          break;
+        default:
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      }
+      
+      // Filter orders by date range
+      const filteredOrders = orders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate >= startDate && orderDate <= endDate;
+      });
+      
+      // Calculate basic statistics
+      const totalCustomers = customers.length;
+      const totalOrders = orders.length;
+      const ordersInPeriod = filteredOrders.length;
+      
+      // Calculate order status statistics
+      const ordersByStatus = {
+        pending: filteredOrders.filter(order => order.status === 'PENDING').length,
+        confirmed: filteredOrders.filter(order => order.status === 'CONFIRMED').length,
+        shipping: filteredOrders.filter(order => order.status === 'SHIPPING').length,
+        delivered: filteredOrders.filter(order => order.status === 'DELIVERED').length,
+        cancelled: filteredOrders.filter(order => order.status === 'CANCELLED').length,
+        returned: filteredOrders.filter(order => order.status === 'RETURNED').length
+      };
+      
+      // Calculate total quantity sold
+      const totalQuantitySold = filteredOrders.reduce((sum, order) => sum + (order.quantity || 0), 0);
+      
+      // Calculate top products
+      const productCounts = {};
+      filteredOrders.forEach(order => {
+        if (order.productName) {
+          productCounts[order.productName] = (productCounts[order.productName] || 0) + (order.quantity || 0);
+        }
+      });
+      
+      const topProducts = Object.entries(productCounts)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([name, quantity]) => ({ name, quantity }));
+      
+      // Calculate customer activity
+      const customerOrders = {};
+      filteredOrders.forEach(order => {
+        if (order.customerName) {
+          customerOrders[order.customerName] = (customerOrders[order.customerName] || 0) + 1;
+        }
+      });
+      
+      const topCustomers = Object.entries(customerOrders)
+        .sort(([,a], [,b]) => b - a)
+        .slice(0, 5)
+        .map(([name, orderCount]) => ({ name, orderCount }));
+      
+      // Calculate daily order trends (for charts)
+      const dailyOrders = {};
+      filteredOrders.forEach(order => {
+        const date = new Date(order.createdAt).toLocaleDateString('vi-VN');
+        dailyOrders[date] = (dailyOrders[date] || 0) + 1;
+      });
+      
+      const orderTrends = Object.entries(dailyOrders)
+        .sort(([a], [b]) => new Date(a.split('/').reverse().join('-')) - new Date(b.split('/').reverse().join('-')))
+        .map(([date, count]) => ({ date, count }));
+      
+      setReportData({
+        period: reportPeriod,
+        dateRange: { startDate, endDate },
+        totalCustomers,
+        totalOrders,
+        ordersInPeriod,
+        ordersByStatus,
+        totalQuantitySold,
+        topProducts,
+        topCustomers,
+        orderTrends,
+        completionRate: ordersInPeriod > 0 ? Math.round((ordersByStatus.delivered / ordersInPeriod) * 100) : 0,
+        cancellationRate: ordersInPeriod > 0 ? Math.round((ordersByStatus.cancelled / ordersInPeriod) * 100) : 0
+      });
+      
+    } catch (err) {
+      console.error('Error calculating report data:', err);
+      setError('Không thể tính toán dữ liệu báo cáo. Vui lòng thử lại sau.');
+    } finally {
+      setIsLoadingReports(false);
+    }  }, [orders, customers, reportPeriod]);
   
   // Load data when component mounts
   useEffect(() => {
@@ -115,13 +230,31 @@ const ShopManagement = () => {
     }
     
     fetchShopDetails();
+  }, [isAuthenticated, navigate, fetchShopDetails]);  // Load tab-specific data when activeTab changes
+  useEffect(() => {
+    if (!isAuthenticated()) return;
     
-    if (activeTab === 'customers') {
+    if (activeTab === 'customers' && !dataFetchedRef.current.customers) {
       fetchCustomers();
-    } else if (activeTab === 'orders') {
+    } else if (activeTab === 'orders' && !dataFetchedRef.current.orders) {
       fetchOrders();
+    } else if (activeTab === 'reports') {
+      // For reports, we need both customers and orders data
+      if (!dataFetchedRef.current.customers) {
+        fetchCustomers();
+      }
+      if (!dataFetchedRef.current.orders) {
+        fetchOrders();
+      }
     }
-  }, [isAuthenticated, navigate, fetchShopDetails, fetchCustomers, fetchOrders, activeTab]);
+  }, [activeTab, isAuthenticated, fetchCustomers, fetchOrders]);
+
+  // Calculate report data when orders/customers change or report period changes
+  useEffect(() => {
+    if (activeTab === 'reports' && orders.length > 0 && customers.length > 0) {
+      calculateReportData();
+    }
+  }, [activeTab, orders, customers, reportPeriod, calculateReportData]);
   
   // Effect để đóng dropdown khi click bên ngoài
   useEffect(() => {
@@ -1320,31 +1453,211 @@ const ShopManagement = () => {
     </div>
   );
   
-  // Render reports section placeholder
+  // Render reports section
   const renderReports = () => (
     <div className="management-content">
       <div className="content-header">
-        <h2><FiBarChart2 className="header-icon" /> Báo cáo & Thống kê</h2>
-      </div>
-      <div className="coming-soon">
-        <div className="coming-soon-content">
-          <FiBarChart2 className="coming-soon-icon" />
-          <h3>Tính năng đang phát triển</h3>
-          <p>Chức năng báo cáo và thống kê sẽ sớm được ra mắt. Vui lòng quay lại sau.</p>
+        <h2><FiBarChart2 className="header-icon" /> Báo cáo thống kê</h2>
+        <div className="header-actions">
+          <select 
+            value={reportPeriod} 
+            onChange={(e) => setReportPeriod(e.target.value)}
+            className="period-select"
+          >
+            <option value="week">7 ngày qua</option>
+            <option value="month">Tháng này</option>
+            <option value="year">Năm này</option>
+          </select>
+          <button 
+            className="refresh-btn"
+            onClick={calculateReportData}
+            disabled={isLoadingReports}
+          >
+            <FiBarChart2 />
+            {isLoadingReports ? 'Đang tính toán...' : 'Làm mới'}
+          </button>
         </div>
       </div>
+
+      {isLoadingReports ? (
+        <div className="loading-container">
+          <div className="loading-spinner"></div>
+          <p>Đang tính toán dữ liệu báo cáo...</p>
+        </div>
+      ) : reportData ? (
+        <div className="reports-container">
+          {/* Overview Statistics */}
+          <div className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-icon customers">
+                <FiUsers />
+              </div>
+              <div className="stat-content">
+                <h3>{reportData.totalCustomers}</h3>
+                <p>Tổng khách hàng</p>
+              </div>
+            </div>
+            
+            <div className="stat-card">
+              <div className="stat-icon orders">
+                <FiShoppingCart />
+              </div>
+              <div className="stat-content">
+                <h3>{reportData.ordersInPeriod}</h3>
+                <p>Đơn hàng {reportPeriod === 'week' ? '7 ngày' : reportPeriod === 'month' ? 'tháng này' : 'năm này'}</p>
+              </div>
+            </div>
+            
+            <div className="stat-card">
+              <div className="stat-icon products">
+                <FiPackage />
+              </div>
+              <div className="stat-content">
+                <h3>{reportData.totalQuantitySold}</h3>
+                <p>Sản phẩm đã bán</p>
+              </div>
+            </div>
+            
+            <div className="stat-card">
+              <div className="stat-icon success">
+                <FiCheckCircle />
+              </div>
+              <div className="stat-content">
+                <h3>{reportData.completionRate}%</h3>
+                <p>Tỷ lệ hoàn thành</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Order Status Chart */}
+          <div className="chart-section">
+            <h3>Trạng thái đơn hàng</h3>
+            <div className="status-chart">
+              <div className="status-item">
+                <div className="status-bar pending" style={{width: `${reportData.ordersInPeriod > 0 ? (reportData.ordersByStatus.pending / reportData.ordersInPeriod) * 100 : 0}%`}}></div>
+                <span>Chờ xác nhận: {reportData.ordersByStatus.pending}</span>
+              </div>
+              <div className="status-item">
+                <div className="status-bar confirmed" style={{width: `${reportData.ordersInPeriod > 0 ? (reportData.ordersByStatus.confirmed / reportData.ordersInPeriod) * 100 : 0}%`}}></div>
+                <span>Đã xác nhận: {reportData.ordersByStatus.confirmed}</span>
+              </div>
+              <div className="status-item">
+                <div className="status-bar shipping" style={{width: `${reportData.ordersInPeriod > 0 ? (reportData.ordersByStatus.shipping / reportData.ordersInPeriod) * 100 : 0}%`}}></div>
+                <span>Đang giao: {reportData.ordersByStatus.shipping}</span>
+              </div>
+              <div className="status-item">
+                <div className="status-bar delivered" style={{width: `${reportData.ordersInPeriod > 0 ? (reportData.ordersByStatus.delivered / reportData.ordersInPeriod) * 100 : 0}%`}}></div>
+                <span>Đã giao: {reportData.ordersByStatus.delivered}</span>
+              </div>
+              <div className="status-item">
+                <div className="status-bar cancelled" style={{width: `${reportData.ordersInPeriod > 0 ? (reportData.ordersByStatus.cancelled / reportData.ordersInPeriod) * 100 : 0}%`}}></div>
+                <span>Đã hủy: {reportData.ordersByStatus.cancelled}</span>
+              </div>
+              <div className="status-item">
+                <div className="status-bar returned" style={{width: `${reportData.ordersInPeriod > 0 ? (reportData.ordersByStatus.returned / reportData.ordersInPeriod) * 100 : 0}%`}}></div>
+                <span>Đã trả: {reportData.ordersByStatus.returned}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Top Products and Customers */}
+          <div className="reports-grid">
+            <div className="report-section">
+              <h3>Sản phẩm bán chạy</h3>
+              <div className="top-list">
+                {reportData.topProducts.length > 0 ? reportData.topProducts.map((product, index) => (
+                  <div key={index} className="top-item">
+                    <span className="rank">#{index + 1}</span>
+                    <span className="name">{product.name}</span>
+                    <span className="value">{product.quantity} sản phẩm</span>
+                  </div>
+                )) : (
+                  <p className="no-data">Chưa có dữ liệu sản phẩm</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="report-section">
+              <h3>Khách hàng tích cực</h3>
+              <div className="top-list">
+                {reportData.topCustomers.length > 0 ? reportData.topCustomers.map((customer, index) => (
+                  <div key={index} className="top-item">
+                    <span className="rank">#{index + 1}</span>
+                    <span className="name">{customer.name}</span>
+                    <span className="value">{customer.orderCount} đơn hàng</span>
+                  </div>
+                )) : (
+                  <p className="no-data">Chưa có dữ liệu khách hàng</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Order Trends */}
+          {reportData.orderTrends.length > 0 && (
+            <div className="chart-section">
+              <h3>Xu hướng đơn hàng theo ngày</h3>
+              <div className="trend-chart">
+                {reportData.orderTrends.map((trend, index) => (
+                  <div key={index} className="trend-item">
+                    <div className="trend-date">{trend.date}</div>
+                    <div className="trend-bar-container">
+                      <div 
+                        className="trend-bar" 
+                        style={{
+                          height: `${Math.max((trend.count / Math.max(...reportData.orderTrends.map(t => t.count))) * 100, 10)}%`
+                        }}
+                      ></div>
+                    </div>
+                    <div className="trend-count">{trend.count}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="empty-state">
+          <FiBarChart2 className="empty-icon" />
+          <h3>Chưa có dữ liệu báo cáo</h3>
+          <p>Vui lòng thêm khách hàng và đơn hàng để xem báo cáo thống kê.</p>
+          <button className="primary-btn" onClick={calculateReportData}>
+            <FiBarChart2 /> Tạo báo cáo
+          </button>
+        </div>
+      )}
     </div>
   );
   
-  // Render feedbacks section placeholder
+
+
+  // Render active tab content
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'customers':
+        return renderCustomers();
+      case 'orders':
+        return renderOrders();
+      case 'reports':
+        return renderReports();
+      case 'feedbacks':
+        return renderFeedbacks();
+      case 'products':
+        return renderProducts();
+      default:
+        return renderCustomers();
+    }
+  };
+  
+  // Render feedbacks section (placeholder for future development)
   const renderFeedbacks = () => (
     <div className="management-content">
       <div className="content-header">
-        <h2><FiMessageSquare className="header-icon" /> Phản hồi khách hàng</h2>
+        <h2><FiMessageSquare className="header-icon" /> Quản lý phản hồi</h2>
       </div>
-      <div className="coming-soon">
-        <div className="coming-soon-content">
-          <FiMessageSquare className="coming-soon-icon" />
+      <div className="redirect-container">
+        <div className="redirect-content">
+          <FiMessageSquare className="redirect-icon" />
           <h3>Tính năng đang phát triển</h3>
           <p>Chức năng quản lý phản hồi khách hàng sẽ sớm được ra mắt. Vui lòng quay lại sau.</p>
         </div>
@@ -1373,25 +1686,7 @@ const ShopManagement = () => {
       </div>
     </div>
   );
-  
-  // Render active tab content
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'customers':
-        return renderCustomers();
-      case 'orders':
-        return renderOrders();
-      case 'reports':
-        return renderReports();
-      case 'feedbacks':
-        return renderFeedbacks();
-      case 'products':
-        return renderProducts();
-      default:
-        return renderCustomers();
-    }
-  };
-  
+
   return (
     <div className="shop-management-container">
       <div className="management-header">

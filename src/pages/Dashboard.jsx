@@ -344,76 +344,84 @@ const Dashboard = () => {
       </div>
       <div className="overview-stats">
         <div className="stat-card account-card">
-          <div className="stat-card-header">
-            <h3>Tài khoản</h3>
-            <div className="stat-icon">
-              <FiShield size={24} />
-            </div>
-          </div>
-          <div className="stat-value">
-            <span className={`status-indicator ${profile?.status === 'ACTIVE' ? 'active' : 'inactive'}`}></span>
-            {profile?.status === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}
-          </div>
-          <p className="stat-desc">
-            {profile?.status === 'ACTIVE'
-              ? 'Tài khoản của bạn đang hoạt động bình thường' 
-              : 'Tài khoản của bạn đang bị hạn chế'}
-          </p>
-        </div>
-        <div className="stat-card balance-card">
-          <div className="stat-card-header">
-            <h3 className="balance-header">Số dư tài khoản</h3>
-            <div className="stat-icon">
-              <FiCreditCard size={24} />
-            </div>
-          </div>
-          <div className="stat-value balance-value">
-            {balance !== null 
-              ? `${balance.toLocaleString()} VNĐ` 
-              : 'Đang tải...'}
-          </div>
-          <p className="stat-desc">Số dư hiện tại trong tài khoản của bạn</p>
-          <button 
-            className="refresh-btn" 
-            onClick={refreshBalance}
-            disabled={isRefreshing}
-          >
-            <FiRefreshCw className={`refresh-icon ${isRefreshing ? 'spinning' : ''}`} />
-            <span>{isRefreshing ? 'Đang cập nhật' : 'Cập nhật số dư'}</span>
-          </button>
-        </div>
-        <div className="stat-card user-card">
-          <div className="stat-card-header">
-            <h3>Thông tin cá nhân</h3>
-            <div className="stat-icon">
-              <FiUser size={24} />
-            </div>
-          </div>
-          <div className="stat-value">
-            {profile?.fullname 
-              ? profile.fullname
-              : 'Chưa cập nhật'}
-          </div>
-          <p className="stat-desc">Tên hiển thị của bạn trên hệ thống</p>
-          <button 
-            className="view-profile-btn" 
-            onClick={() => setActiveSection('profile')}
-          >
-            Xem hồ sơ <FiActivity size={16} />
-          </button>
-        </div>
-        {profile?.isAdmin && (
-          <div className="stat-card admin-card">
+          <div className="stat-card-content">
             <div className="stat-card-header">
-              <h3>Quyền hạn</h3>
+              <h3>Tài khoản</h3>
               <div className="stat-icon">
-                <FiKey size={24} />
+                <FiShield size={24} />
               </div>
             </div>
             <div className="stat-value">
-              Quản trị viên
+              <span className={`status-indicator ${profile?.status === 'ACTIVE' ? 'active' : 'inactive'}`}></span>
+              {profile?.status === 'ACTIVE' ? 'Hoạt động' : 'Không hoạt động'}
             </div>
-            <p className="stat-desc">Bạn có quyền quản trị hệ thống</p>
+            <p className="stat-desc">
+              {profile?.status === 'ACTIVE'
+                ? 'Tài khoản của bạn đang hoạt động bình thường' 
+                : 'Tài khoản của bạn đang bị hạn chế'}
+            </p>
+          </div>
+        </div>
+        <div className="stat-card balance-card">
+          <div className="stat-card-content">
+            <div className="stat-card-header">
+              <h3 className="balance-header">Số dư tài khoản</h3>
+              <div className="stat-icon">
+                <FiCreditCard size={24} />
+              </div>
+            </div>
+            <div className="stat-value balance-value">
+              {balance !== null 
+                ? `${balance.toLocaleString()} VNĐ` 
+                : 'Đang tải...'}
+            </div>
+            <p className="stat-desc">Số dư hiện tại trong tài khoản của bạn</p>
+            <button 
+              className="refresh-btn" 
+              onClick={refreshBalance}
+              disabled={isRefreshing}
+            >
+              <FiRefreshCw className={`refresh-icon ${isRefreshing ? 'spinning' : ''}`} />
+              <span>{isRefreshing ? 'Đang cập nhật' : 'Cập nhật số dư'}</span>
+            </button>
+          </div>
+        </div>
+        <div className="stat-card user-card">
+          <div className="stat-card-content">
+            <div className="stat-card-header">
+              <h3>Thông tin cá nhân</h3>
+              <div className="stat-icon">
+                <FiUser size={24} />
+              </div>
+            </div>
+            <div className="stat-value">
+              {profile?.fullname 
+                ? profile.fullname
+                : 'Chưa cập nhật'}
+            </div>
+            <p className="stat-desc">Tên hiển thị của bạn trên hệ thống</p>
+            <button 
+              className="view-profile-btn" 
+              onClick={() => setActiveSection('profile')}
+            >
+              Xem hồ sơ <FiActivity size={16} />
+            </button>
+          </div>
+        </div>
+        {profile?.isAdmin && (
+          <div className="stat-card admin-card">
+            <div className="stat-card-content">
+              <div className="stat-card-header">
+                <h3>Quyền hạn</h3>
+                <div className="stat-icon">
+                  <FiKey size={24} />
+                </div>
+              </div>
+              <div className="stat-value">
+                Quản trị viên
+              </div>
+              <p className="stat-desc">Bạn có quyền quản trị hệ thống</p>
+            </div>
           </div>
         )}
       </div>
