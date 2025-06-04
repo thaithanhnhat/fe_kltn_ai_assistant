@@ -6,7 +6,7 @@ import {
   FiPackage, FiSettings, FiBarChart2, FiAlertCircle, FiCheckCircle, 
   FiX, FiPlus, FiEdit3, FiTrash2, FiSearch, FiFilter, FiDownload,
   FiCalendar, FiCreditCard, FiPhone, FiMail, FiMapPin, FiInfo, FiUser,
-  FiChevronDown
+  FiChevronDown, FiPrinter
 } from 'react-icons/fi';
 import shopService from '../services/shopService';
 import customerService from '../services/customerService';
@@ -293,8 +293,7 @@ const ShopManagement = () => {
       setIsLoading(false);
     }
   };
-  
-  // Download orders as CSV
+    // Download orders as CSV
   const downloadOrdersCSV = () => {
     try {
       // Get orders to be exported
@@ -354,6 +353,510 @@ const ShopManagement = () => {
     } catch (err) {
       console.error('Error downloading CSV:', err);
       setError('Không thể xuất dữ liệu. Vui lòng thử lại sau.');
+    }
+  };
+
+  // Function to get customer details for an order
+  const getCustomerDetailsForOrder = async (customerName) => {
+    try {
+      // Find customer by name from the customers list
+      const customer = customers.find(c => c.fullname === customerName);
+      if (customer) {
+        return customer;
+      }
+      
+      // If not found in current list, try to fetch all customers
+      if (customers.length === 0) {
+        await fetchCustomers();
+        const updatedCustomer = customers.find(c => c.fullname === customerName);
+        return updatedCustomer || null;
+      }
+      
+      return null;
+    } catch (err) {
+      console.error('Error getting customer details:', err);
+      return null;
+    }
+  };
+
+  // Print individual order
+  const printOrder = async (order) => {
+    try {
+      // Get customer details
+      const customerDetails = await getCustomerDetailsForOrder(order.customerName);
+      
+      // Create print content
+      const printContent = `
+        <html>
+          <head>
+            <title>Đơn hàng #${order.id || 'N/A'}</title>            <style>              body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 15px;
+                color: #333;
+                line-height: 1.4;
+                background: white;
+              }
+              .print-header {
+                text-align: center;
+                border-bottom: 3px solid #0056b3;
+                padding-bottom: 12px;
+                margin-bottom: 20px;
+              }.print-header h1 {
+                color: #0056b3;
+                margin: 0;
+                font-size: 24px;
+                font-weight: bold;
+              }              .print-header h2 {
+                color: #666;
+                margin: 6px 0 0 0;
+                font-size: 14px;
+                font-weight: normal;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+              }
+              .shop-info {
+                text-align: center;
+                margin-bottom: 15px;
+                color: #666;
+                font-size: 12px;
+                font-style: italic;
+              }
+              .order-section {
+                margin-bottom: 15px;
+                border: 1px solid #e0e0e0;
+                border-radius: 5px;
+                overflow: hidden;
+              }
+              .section-title {
+                background: linear-gradient(135deg, #0056b3, #0041a3);
+                color: white;
+                padding: 6px 12px;
+                font-weight: bold;
+                font-size: 12px;
+                margin: 0;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+              .detail-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 0;
+              }              .detail-table td {
+                padding: 8px 12px;
+                border-bottom: 1px solid #f0f0f0;
+                vertical-align: top;
+              }
+              .detail-table td:first-child {
+                font-weight: 600;
+                color: #333;
+                width: 120px;
+                background-color: #f8f9fa;
+                border-right: 1px solid #e0e0e0;
+              }
+              .detail-table td:last-child {
+                color: #555;
+              }
+              .detail-table tr:last-child td {
+                border-bottom: none;
+              }              .status-badge {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 12px;
+                font-size: 10px;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+              }
+              .status-pending { background-color: #fff3cd; color: #856404; }
+              .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+              .status-shipping { background-color: #d4edda; color: #155724; }
+              .status-delivered { background-color: #d4edda; color: #155724; }
+              .status-cancelled { background-color: #f8d7da; color: #721c24; }
+              .status-returned { background-color: #e2e3e5; color: #383d41; }              .print-footer {
+                margin-top: 25px;
+                padding: 12px;
+                background-color: #f8f9fa;
+                border-radius: 5px;
+                text-align: center;
+                color: #666;
+                font-size: 11px;
+                line-height: 1.6;
+                border: 1px solid #e0e0e0;
+              }
+              .print-date {
+                margin-top: 15px;
+                text-align: right;
+                color: #888;
+                font-size: 11px;
+                border-top: 1px solid #e0e0e0;
+                padding-top: 8px;
+              }              @media print {
+                body { 
+                  margin: 0; 
+                  padding: 8px; 
+                  font-size: 11px; 
+                }
+                .print-header { 
+                  page-break-inside: avoid; 
+                  margin-bottom: 15px;
+                  border-bottom: 2px solid #333;
+                }
+                .order-section { 
+                  page-break-inside: avoid; 
+                  margin-bottom: 12px;
+                  border: 1px solid #333;
+                }
+                .section-title {
+                  background: #333 !important;
+                  color: white !important;
+                  font-size: 11px;
+                  padding: 5px 10px;
+                }
+                .detail-table td {
+                  padding: 6px 10px;
+                }
+                .print-footer {
+                  margin-top: 20px;
+                  padding: 10px;
+                  border: 1px solid #333;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="print-header">
+              <h1>${shop?.name || 'Cửa hàng'}</h1>
+              <h2>HÓA ĐƠN ĐƠN HÀNG</h2>
+            </div>
+            
+            <div class="shop-info">
+              <strong>Thông tin cửa hàng:</strong> ${shop?.description || 'Không có mô tả'}
+            </div>
+
+            <div class="order-section">
+              <div class="section-title">Thông tin đơn hàng</div>
+              <table class="detail-table">
+                <tr>
+                  <td>Mã đơn hàng:</td>
+                  <td><strong>#${order.id || 'N/A'}</strong></td>
+                </tr>
+                <tr>
+                  <td>Ngày tạo:</td>
+                  <td>${order.createdAt ? formatDateTime(order.createdAt) : 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td>Trạng thái:</td>
+                  <td>
+                    <span class="status-badge status-${(order.status || '').toLowerCase()}">
+                      ${order.status === 'PENDING' ? 'Chờ xác nhận' :
+                        order.status === 'CONFIRMED' ? 'Đã xác nhận' :
+                        order.status === 'SHIPPING' ? 'Đang giao hàng' :
+                        order.status === 'DELIVERED' ? 'Đã giao hàng' :
+                        order.status === 'CANCELLED' ? 'Đã hủy' : 
+                        order.status === 'RETURNED' ? 'Đã trả hàng' : 'Không xác định'}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </div>            ${customerDetails ? `
+            <div class="order-section">
+              <div class="section-title">Thông tin khách hàng</div>
+              <table class="detail-table">
+                <tr>
+                  <td>Họ tên:</td>
+                  <td>${customerDetails.fullname || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td>Số điện thoại:</td>
+                  <td>${customerDetails.phone || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td>Địa chỉ:</td>
+                  <td>${customerDetails.address || 'N/A'}</td>
+                </tr>
+              </table>
+            </div>
+            ` : `
+            <div class="order-section">
+              <div class="section-title">Thông tin khách hàng</div>
+              <table class="detail-table">
+                <tr>
+                  <td>Tên khách hàng:</td>
+                  <td>${order.customerName || 'N/A'}</td>
+                </tr>
+              </table>
+            </div>
+            `}<div class="order-section">
+              <div class="section-title">Chi tiết sản phẩm</div>
+              <table class="detail-table">
+                <tr>
+                  <td>Tên sản phẩm:</td>
+                  <td>${order.productName || 'N/A'}</td>
+                </tr>
+                <tr>
+                  <td>Số lượng:</td>
+                  <td>${order.quantity || 0}</td>
+                </tr>
+                ${order.note ? `
+                <tr>
+                  <td>Ghi chú:</td>
+                  <td>${order.note}</td>
+                </tr>
+                ` : ''}
+              </table>
+            </div><div class="print-footer">
+              <p><strong>Cảm ơn quý khách đã tin tưởng và sử dụng dịch vụ!</strong></p>
+            </div>
+
+            <div class="print-date">
+              <strong>Ngày in:</strong> ${formatDateTime(new Date().toISOString())}
+            </div>
+          </body>
+        </html>
+      `;
+
+      // Open print window
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+        setSuccess('In đơn hàng thành công!');
+      } else {
+        setError('Không thể mở cửa sổ in. Vui lòng kiểm tra cài đặt trình duyệt.');
+      }
+    } catch (err) {
+      console.error('Error printing order:', err);
+      setError('Không thể in đơn hàng. Vui lòng thử lại sau.');
+    }
+  };
+
+  // Print all orders
+  const printAllOrders = async () => {
+    try {
+      // Get filtered orders
+      const ordersToPrint = filteredOrders();
+      
+      if (ordersToPrint.length === 0) {
+        setError('Không có đơn hàng nào để in.');
+        return;
+      }
+
+      // Fetch customer details for all orders
+      const ordersWithCustomers = await Promise.all(
+        ordersToPrint.map(async (order) => {
+          const customerDetails = await getCustomerDetailsForOrder(order.customerName);
+          return { ...order, customerDetails };
+        })
+      );
+
+      // Create print content for all orders
+      const printContent = `
+        <html>
+          <head>
+            <title>Danh sách đơn hàng - ${shop?.name || 'Cửa hàng'}</title>
+            <style>              body {
+                font-family: 'Arial', sans-serif;
+                margin: 0;
+                padding: 15px;
+                color: #333;
+                line-height: 1.4;
+              }
+              .print-header {
+                text-align: center;
+                border-bottom: 2px solid #0056b3;
+                padding-bottom: 15px;
+                margin-bottom: 25px;
+              }.print-header h1 {
+                color: #0056b3;
+                margin: 0;
+                font-size: 24px;
+              }              .print-header h2 {
+                color: #666;
+                margin: 4px 0 0 0;
+                font-size: 16px;
+                font-weight: normal;
+              }
+              .summary-info {
+                background-color: #f8f9fa;
+                padding: 12px;
+                border-radius: 5px;
+                margin-bottom: 25px;
+                border-left: 4px solid #0056b3;
+                border: 1px solid #e0e0e0;
+              }              .orders-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 25px;
+                font-size: 11px;
+                border: 1px solid #ddd;
+              }
+              .orders-table th,
+              .orders-table td {
+                padding: 6px 4px;
+                border: 1px solid #ddd;
+                text-align: left;
+                vertical-align: top;
+              }              .orders-table th {
+                background: linear-gradient(135deg, #0056b3, #0041a3);
+                color: white;
+                font-weight: bold;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-size: 10px;
+              }
+              .orders-table tr:nth-child(even) {
+                background-color: #f9f9f9;
+              }
+              .status-badge {
+                display: inline-block;
+                padding: 2px 6px;
+                border-radius: 10px;
+                font-size: 10px;
+                font-weight: bold;
+                text-transform: uppercase;
+              }
+              .status-pending { background-color: #fff3cd; color: #856404; }
+              .status-confirmed { background-color: #d1ecf1; color: #0c5460; }
+              .status-shipping { background-color: #d4edda; color: #155724; }
+              .status-delivered { background-color: #d4edda; color: #155724; }
+              .status-cancelled { background-color: #f8d7da; color: #721c24; }
+              .status-returned { background-color: #e2e3e5; color: #383d41; }              .print-footer {
+                margin-top: 30px;
+                padding: 15px;
+                border-top: 2px solid #0056b3;
+                text-align: center;
+                color: #666;
+                font-size: 11px;
+                background-color: #f8f9fa;
+                border-radius: 5px;
+                border: 1px solid #e0e0e0;
+              }
+              .print-date {
+                margin-top: 15px;
+                text-align: right;
+                color: #666;
+                font-size: 12px;
+                border-top: 1px solid #e0e0e0;
+                padding-top: 8px;
+              }              @media print {
+                body { margin: 0; padding: 10px; font-size: 10px; }
+                .print-header { 
+                  page-break-inside: avoid; 
+                  border-bottom: 2px solid #333;
+                  margin-bottom: 20px;
+                }
+                .summary-info {
+                  margin-bottom: 20px;
+                  border: 1px solid #333;
+                  page-break-inside: avoid;
+                }
+                .orders-table { 
+                  page-break-inside: auto; 
+                  font-size: 9px;
+                  border: 2px solid #333;
+                }
+                .orders-table th {
+                  background: #333 !important;
+                  color: white !important;
+                }
+                .orders-table th,
+                .orders-table td {
+                  padding: 4px 3px;
+                  border: 1px solid #333;
+                }
+                .orders-table tr { page-break-inside: avoid; }
+                .print-footer {
+                  border: 1px solid #333;
+                  margin-top: 20px;
+                }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="print-header">
+              <h1>${shop?.name || 'Cửa hàng'}</h1>
+              <h2>DANH SÁCH ĐƠN HÀNG</h2>
+            </div>
+            
+            <div class="summary-info">
+              <strong>Tổng số đơn hàng:</strong> ${ordersToPrint.length} đơn hàng<br>
+              <strong>Ngày xuất báo cáo:</strong> ${formatDateTime(new Date().toISOString())}<br>
+              ${orderFilterStatus ? `<strong>Lọc theo trạng thái:</strong> ${
+                orderFilterStatus === 'PENDING' ? 'Chờ xác nhận' :
+                orderFilterStatus === 'CONFIRMED' ? 'Đã xác nhận' :
+                orderFilterStatus === 'SHIPPING' ? 'Đang giao hàng' :
+                orderFilterStatus === 'DELIVERED' ? 'Đã giao hàng' :
+                orderFilterStatus === 'CANCELLED' ? 'Đã hủy' :
+                orderFilterStatus === 'RETURNED' ? 'Đã trả hàng' : orderFilterStatus
+              }<br>` : ''}
+              ${orderSearchTerm ? `<strong>Từ khóa tìm kiếm:</strong> "${orderSearchTerm}"<br>` : ''}
+            </div>            <table class="orders-table">
+              <thead>
+                <tr>
+                  <th style="width: 10%;">Mã ĐH</th>
+                  <th style="width: 25%;">Khách hàng</th>
+                  <th style="width: 15%;">Số điện thoại</th>
+                  <th style="width: 25%;">Sản phẩm</th>
+                  <th style="width: 10%;">Số lượng</th>
+                  <th style="width: 15%;">Trạng thái</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${ordersWithCustomers.map(order => `
+                  <tr>
+                    <td>#${order.id || 'N/A'}</td>
+                    <td>
+                      <strong>${order.customerName || 'N/A'}</strong>
+                    </td>
+                    <td>${order.customerDetails?.phone || 'N/A'}</td>
+                    <td>${order.productName || 'N/A'}</td>
+                    <td style="text-align: center;">${order.quantity || 0}</td>
+                    <td>
+                      <span class="status-badge status-${(order.status || '').toLowerCase()}">
+                        ${order.status === 'PENDING' ? 'Chờ xác nhận' :
+                          order.status === 'CONFIRMED' ? 'Đã xác nhận' :
+                          order.status === 'SHIPPING' ? 'Đang giao hàng' :
+                          order.status === 'DELIVERED' ? 'Đã giao hàng' :
+                          order.status === 'CANCELLED' ? 'Đã hủy' : 
+                          order.status === 'RETURNED' ? 'Đã trả hàng' : 'N/A'}
+                      </span>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+
+            <div class="print-footer">
+              <p>Báo cáo được tạo tự động từ hệ thống quản lý cửa hàng</p>
+              <p><strong>${shop?.name || 'Cửa hàng'}</strong></p>
+            </div>
+
+            <div class="print-date">
+              <strong>Thời gian in:</strong> ${formatDateTime(new Date().toISOString())}
+            </div>
+          </body>
+        </html>
+      `;
+
+      // Open print window
+      const printWindow = window.open('', '_blank');
+      if (printWindow) {
+        printWindow.document.write(printContent);
+        printWindow.document.close();
+        printWindow.focus();
+        printWindow.print();
+        printWindow.close();
+        setSuccess(`In thành công ${ordersToPrint.length} đơn hàng!`);
+      } else {
+        setError('Không thể mở cửa sổ in. Vui lòng kiểm tra cài đặt trình duyệt.');
+      }
+    } catch (err) {
+      console.error('Error printing all orders:', err);
+      setError('Không thể in danh sách đơn hàng. Vui lòng thử lại sau.');
     }
   };
   
@@ -585,15 +1088,19 @@ const ShopManagement = () => {
       )}
     </div>
   );
-  
-  // Render order management section
+    // Render order management section
   const renderOrders = () => (
     <div className="management-content">
       <div className="content-header">
         <h2><FiShoppingCart className="header-icon" /> Quản lý đơn hàng</h2>
-        <button className="download-btn" onClick={downloadOrdersCSV}>
-          <FiDownload /> Xuất CSV
-        </button>
+        <div className="header-actions">
+          <button className="action-btn print-all-btn" onClick={printAllOrders}>
+            <FiPrinter /> In tất cả
+          </button>
+          <button className="download-btn" onClick={downloadOrdersCSV}>
+            <FiDownload /> Xuất CSV
+          </button>
+        </div>
       </div>
       
       <div className="search-filter-bar">
@@ -670,13 +1177,18 @@ const ShopManagement = () => {
                          order.status === 'RETURNED' ? 'Đã trả hàng' : 'Không xác định'}
                       </span>
                     </td>
-                    <td>{order.createdAt ? formatDateTime(order.createdAt) : 'N/A'}</td>
-                    <td className="actions-cell">
+                    <td>{order.createdAt ? formatDateTime(order.createdAt) : 'N/A'}</td>                    <td className="actions-cell">
                       <button 
                         className="action-btn info-btn" 
                         onClick={() => setSelectedOrder(order)}
                       >
                         <FiInfo />
+                      </button>
+                      <button 
+                        className="action-btn print-btn" 
+                        onClick={() => printOrder(order)}
+                      >
+                        <FiPrinter />
                       </button>
                       <div className="dropdown">
                         <button 
@@ -792,9 +1304,11 @@ const ShopManagement = () => {
                 <div className="detail-row">
                   <div className="detail-label"><FiInfo className="detail-icon" /> Ghi chú:</div>
                   <div className="detail-value note">{selectedOrder.note || 'Không có ghi chú'}</div>
-                </div>
-              </div>
+                </div>              </div>
               <div className="modal-actions">
+                <button className="modal-btn print-btn" onClick={() => printOrder(selectedOrder)}>
+                  <FiPrinter /> In đơn hàng
+                </button>
                 <button className="modal-btn" onClick={() => setSelectedOrder(null)}>
                   Đóng
                 </button>
@@ -966,4 +1480,4 @@ const ShopManagement = () => {
   );
 };
 
-export default ShopManagement; 
+export default ShopManagement;
