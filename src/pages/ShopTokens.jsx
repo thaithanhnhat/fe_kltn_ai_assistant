@@ -29,9 +29,12 @@ const ShopTokens = () => {
     accessToken: '',
     pageId: '',
     method: 'FACEBOOK'
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  });  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showToken, setShowToken] = useState(false);
+  
+  // Collapsible instructions state
+  const [showTelegramInstructions, setShowTelegramInstructions] = useState(false);
+  const [showFacebookInstructions, setShowFacebookInstructions] = useState(false);
   
   // Facebook bot state
   const [facebookBotStatus, setFacebookBotStatus] = useState(null);
@@ -681,8 +684,7 @@ const ShopTokens = () => {
                     onChange={handleFormChange}
                     placeholder={`Nhập ${formData.method.toLowerCase()} access token`}
                     required
-                  />
-                  <button 
+                  />                  <button 
                     type="button" 
                     className="toggle-view-btn"
                     onClick={() => setShowToken(prev => !prev)}
@@ -691,14 +693,115 @@ const ShopTokens = () => {
                   </button>
                 </div>
               </div>
-              <div className="token-info-box">
-                <FiInfo className="info-icon" />
-                <span>
-                  {formData.method === 'FACEBOOK' 
-                    ? 'Token này dùng để kết nối với Facebook Page. Bạn có thể lấy token từ Facebook Developer.' 
-                    : 'Token này dùng để kết nối với Telegram Bot. Lấy token từ BotFather.'}
-                </span>
-              </div>
+              
+              {formData.method === 'FACEBOOK' ? (
+                <div className="facebook-instructions">
+                  <div 
+                    className="instruction-header clickable"
+                    onClick={() => setShowFacebookInstructions(!showFacebookInstructions)}
+                  >
+                    <FiInfo className="info-icon" />
+                    <span>Hướng dẫn lấy Facebook Page Access Token</span>
+                    <FiHelpCircle className={`toggle-icon ${showFacebookInstructions ? 'expanded' : ''}`} />
+                  </div>
+                  {showFacebookInstructions && (
+                    <div className="instruction-steps">
+                      <div className="step">
+                        <span className="step-number">1</span>
+                        <div className="step-content">
+                          <strong>Truy cập Facebook Developers</strong>
+                          <p>Vào <a href="https://developers.facebook.com/" target="_blank" rel="noopener noreferrer">developers.facebook.com</a> và đăng nhập tài khoản Facebook của bạn</p>
+                        </div>
+                      </div>
+                      <div className="step">
+                        <span className="step-number">2</span>
+                        <div className="step-content">
+                          <strong>Tạo ứng dụng mới</strong>
+                          <p>Nhấn "Create App" và chọn loại "Business" hoặc "Consumer"</p>
+                        </div>
+                      </div>
+                      <div className="step">
+                        <span className="step-number">3</span>
+                        <div className="step-content">
+                          <strong>Thêm Facebook Login</strong>
+                          <p>Trong dashboard ứng dụng, thêm sản phẩm "Facebook Login"</p>
+                        </div>
+                      </div>
+                      <div className="step">
+                        <span className="step-number">4</span>
+                        <div className="step-content">
+                          <strong>Lấy Page Access Token</strong>
+                          <p>Vào Tools &gt; Graph API Explorer, chọn Page của bạn và copy Access Token</p>
+                          <p className="warning-text">⚠️ Đảm bảo token có quyền manage_pages và pages_messaging!</p>
+                        </div>
+                      </div>
+                      <div className="step">
+                        <span className="step-number">5</span>
+                        <div className="step-content">
+                          <strong>Lấy Page ID</strong>
+                          <p>Vào Page Settings &gt; About &gt; Page ID hoặc xem trong Graph API Explorer</p>
+                        </div>
+                      </div>
+                    </div>                  )}
+                </div>
+              ) : (
+                <div className="telegram-instructions">
+                  <div 
+                    className="instruction-header clickable"
+                    onClick={() => setShowTelegramInstructions(!showTelegramInstructions)}
+                  >
+                    <FiInfo className="info-icon" />
+                    <span>Hướng dẫn lấy Telegram Bot Token từ BotFather</span>
+                    <FiHelpCircle className={`toggle-icon ${showTelegramInstructions ? 'expanded' : ''}`} />
+                  </div>
+                  {showTelegramInstructions && (
+                    <div className="instruction-steps">
+                    <div className="step">
+                      <span className="step-number">1</span>
+                      <div className="step-content">
+                        <strong>Mở Telegram và tìm BotFather</strong>
+                        <p>Tìm kiếm <code>@BotFather</code> trong Telegram hoặc nhấn vào link: <a href="https://t.me/botfather" target="_blank" rel="noopener noreferrer">t.me/botfather</a></p>
+                      </div>
+                    </div>
+                    <div className="step">
+                      <span className="step-number">2</span>
+                      <div className="step-content">
+                        <strong>Tạo bot mới</strong>
+                        <p>Gửi lệnh <code>/newbot</code> cho BotFather</p>
+                      </div>
+                    </div>
+                    <div className="step">
+                      <span className="step-number">3</span>
+                      <div className="step-content">
+                        <strong>Đặt tên cho bot</strong>
+                        <p>Nhập tên hiển thị cho bot của bạn (ví dụ: "My Shop Bot")</p>
+                      </div>
+                    </div>
+                    <div className="step">
+                      <span className="step-number">4</span>
+                      <div className="step-content">
+                        <strong>Đặt username cho bot</strong>
+                        <p>Nhập username cho bot (phải kết thúc bằng "bot", ví dụ: "myshop_bot")</p>
+                      </div>
+                    </div>
+                    <div className="step">
+                      <span className="step-number">5</span>
+                      <div className="step-content">
+                        <strong>Lấy token</strong>
+                        <p>BotFather sẽ gửi cho bạn một token có dạng: <code>123456789:ABCdefGHIjklMNOpqrsTUVwxyz</code></p>
+                        <p className="warning-text">⚠️ Giữ token này bí mật và không chia sẻ với ai!</p>
+                      </div>
+                    </div>                    <div className="step">
+                      <span className="step-number">6</span>
+                      <div className="step-content">
+                        <strong>Sao chép và dán token</strong>
+                        <p>Sao chép token từ BotFather và dán vào ô "Access Token" bên trên</p>
+                      </div>
+                    </div>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="form-actions">
                 <button
                   type="button"
