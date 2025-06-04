@@ -885,6 +885,295 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
+/* Header Actions Container */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Print Buttons */
+.print-btn {
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  background-color: #6b46c1;
+  color: white;
+}
+
+.print-btn:hover {
+  background-color: #553c9a;
+  transform: translateY(-1px);
+}
+
+.print-btn svg {
+  margin-right: 8px;
+}
+
+.print-btn:disabled {
+  background-color: #a0aec0;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.print-btn:disabled:hover {
+  background-color: #a0aec0;
+  transform: none;
+}
+
+/* Print functionality styles */
+.print-all-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 16px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.print-all-btn:hover {
+  background-color: #5a67d8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.print-all-btn:active {
+  transform: translateY(0);
+}
+
+.print-order-btn {
+  background: none;
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #667eea;
+  margin-left: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.print-order-btn:hover {
+  background-color: rgba(102, 126, 234, 0.1);
+  color: #5a67d8;
+  transform: translateY(-1px);
+}
+
+.modal-print-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #667eea;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 8px;
+  margin-right: 12px;
+}
+
+.modal-print-btn:hover {
+  background-color: #5a67d8;
+  transform: translateY(-1px);
+}
+
+/* Modal button with print functionality */
+.modal-btn.print-btn {
+  background-color: #667eea;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.modal-btn.print-btn:hover {
+  background-color: #5a67d8;
+  transform: translateY(-1px);
+}
+
+/* Enhanced Print functionality improvements */
+
+/* Print button accessibility and focus states */
+.print-btn:focus,
+.print-all-btn:focus,
+.modal-btn.print-btn:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Loading states for print buttons */
+.print-btn.loading,
+.print-all-btn.loading {
+  opacity: 0.7;
+  cursor: wait;
+  position: relative;
+}
+
+.print-btn.loading::after,
+.print-all-btn.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+/* Enhanced print media queries with better print styling */
+@media print {
+  /* Hide all non-essential elements */
+  .no-print,
+  .action-btn,
+  .dropdown,
+  .modal-overlay,
+  .sidebar,
+  .management-sidebar,
+  .header-actions,
+  .search-filter-bar,
+  .management-header,
+  .back-button,
+  .form-overlay,
+  .alert-message {
+    display: none !important;
+  }
+  
+  /* Ensure proper page formatting */
+  body {
+    font-family: 'Arial', sans-serif !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    color: #000 !important;
+    margin: 0 !important;
+    padding: 15px !important;
+  }
+  
+  /* Print container adjustments */
+  .print-container,
+  .management-content {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+  
+  /* Table improvements for printing */
+  .data-table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+    font-size: 11px !important;
+  }
+  
+  .data-table th,
+  .data-table td {
+    border: 1px solid #333 !important;
+    padding: 6px 8px !important;
+    text-align: left !important;
+    font-size: 11px !important;
+  }
+  
+  .data-table th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+    color: #000 !important;
+  }
+  
+  /* Status badges for print */
+  .status-badge {
+    border: 1px solid #333 !important;
+    padding: 2px 6px !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    border-radius: 3px !important;
+  }
+  
+  /* Page break controls */
+  .data-table tr {
+    page-break-inside: avoid !important;
+  }
+  
+  .modal-container {
+    box-shadow: none !important;
+    border: 1px solid #333 !important;
+    page-break-inside: avoid !important;
+  }
+  
+  /* Print header styling */
+  .content-header h2 {
+    font-size: 18px !important;
+    margin-bottom: 20px !important;
+    padding-bottom: 10px !important;
+    border-bottom: 2px solid #333 !important;
+    color: #000 !important;
+  }
+}
+
+/* Print button tooltips */
+.print-btn[title]:hover::before,
+.print-all-btn[title]:hover::before {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  margin-bottom: 5px;
+}
+
+/* Print success feedback */
+.print-success {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #10b981;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  z-index: 10000;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 /* Responsive styles */
 @media (max-width: 992px) {
   .management-main {
@@ -926,4 +1215,83 @@
   .filter-container {
     width: 100%;
   }
-} 
+}
+
+@media (max-width: 768px) {
+  .content-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  
+  .print-all-btn,
+  .download-btn {
+    flex: 1;
+    justify-content: center;
+    min-width: 120px;
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+  
+  /* Table actions on mobile */
+  .actions-cell {
+    text-align: center;
+  }
+  
+  .action-btn {
+    width: 28px;
+    height: 28px;
+    margin: 0 2px;
+  }
+  
+  /* Modal adjustments */
+  .modal-container {
+    margin: 10px;
+    max-height: calc(100vh - 20px);
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .modal-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-actions {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .print-all-btn,
+  .download-btn {
+    width: 100%;
+    font-size: 12px;
+    padding: 10px 16px;
+  }
+  
+  /* Smaller action buttons on very small screens */
+  .action-btn {
+    width: 26px;
+    height: 26px;
+  }
+  
+  /* Stack search and filter vertically */
+  .search-filter-bar {
+    gap: 8px;
+  }
+  
+  .search-container,
+  .filter-container {
+    width: 100%;
+  }
+}
